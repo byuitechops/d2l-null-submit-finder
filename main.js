@@ -7,6 +7,7 @@ const auth = require('./auth.json') // [{username:"",password:""}]
 const Path = require('path')
 const fs = require('fs')
 const moment = require('moment')
+const createhtml = require('./createhtml')
 
 // Temporary Globals
 const subdomain = 'pathway'
@@ -68,8 +69,9 @@ async function main() {
             }
         }
     }
-
     await browser.close()
+
+    createhtml()
 }
 
 

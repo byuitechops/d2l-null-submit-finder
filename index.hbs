@@ -1,0 +1,44 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.14/semantic.min.css" />
+    </head>
+    <body>
+        <div class="ui container">
+
+        <table class="ui celled table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>OU</th>
+                    <th>Quiz Id</th>
+                    <th>Time</th>
+                    <th>User Id</th>
+                    <th>Before</th>
+                    <th>After</th>
+                    <th>In List</th>
+                    <th colspan="10">ScreenShots</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each this}}
+                <tr {{{isBad}}}>
+                    <td>{{id}}</td>
+                    <td>{{ou}}</td>
+                    <td>{{quizId}}</td>
+                    <td>{{Date date}}</td>
+                    <td>{{userId}}</td>
+                    <td>{{beforeAttemptNumber}}</td>
+                    <td>{{afterAttemptNumber}}</td>
+                    <td>{{listAttemptNumber}}</td>
+                    {{#each pics}}
+                    <td>{{{picture this}}}</td>
+                    {{/each}}
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+        </div>
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E=" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.14/semantic.min.js"></script>
+    </body>
+</html>

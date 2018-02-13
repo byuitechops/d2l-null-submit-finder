@@ -9,7 +9,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "handlebars": "^4.0.11",
     "moment": "^2.20.1",
+    "opn": "^5.2.0",
     "puppeteer": "^1.0.0"
   }
 }
