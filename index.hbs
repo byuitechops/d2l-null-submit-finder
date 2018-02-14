@@ -5,18 +5,18 @@
     <body>
         <div class="ui container">
 
-        <table class="ui celled table">
+        <table class="ui sortable selectable striped celled table">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>OU</th>
-                    <th>Quiz Id</th>
-                    <th>Time</th>
-                    <th>User Id</th>
-                    <th>Before</th>
-                    <th>After</th>
-                    <th>In List</th>
-                    <th colspan="10">ScreenShots</th>
+                    <th class="id">ID</th>
+                    <th class="num">OU</th>
+                    <th class="num">Quiz Id</th>
+                    <th class="time">Time</th>
+                    <th class="num">User Id</th>
+                    <th class="num">Before</th>
+                    <th class="num">After</th>
+                    <th class="num">In List</th>
+                    <th class="no-sort" colspan="10">ScreenShots</th>
                 </tr>
             </thead>
             <tbody>
@@ -40,5 +40,18 @@
         </div>
         <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E=" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.14/semantic.min.js"></script>
+        <script src="https://semantic-ui.com/javascript/library/tablesort.js"></script>
+        <script>
+            $('thead th.id').data('sortBy', function (th, td, tablesort) {
+                return parseInt(td.text(), 36);
+            });
+            $('thead th.time').data('sortBy', function(th, td, tablesort) {
+                return new Date(td.text());
+            });
+            $('thead th.num').data('sortBy', function (th, td, tablesort) {
+                return parseInt(td.text());
+            });
+            $('table').tablesort()
+        </script>
     </body>
 </html>

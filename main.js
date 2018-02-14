@@ -9,12 +9,29 @@ const fs = require('fs')
 const moment = require('moment')
 const createhtml = require('./createhtml')
 
+const courses = [{
+    ou:'106509',
+    // Only the first 4 of these quizzes don't have deadlines
+    quizzes: ['492840', '492841', '492842', '492843', '492844', '492845', '492846', '492871', '492847', '492848', '492849', '492850', '492851', '492852', '492853', '492854', '492855', '492856', '492857', '492858', '492859', '492860', '492861', '492862', '492863', '492864', '492865', '492866', '492867', '492868', '492869', '492870', '492872', '492873', '492828', '492829', '492830', '492831', '492832', '492833', '492834', '492835', '492836', '492837', '492838', '492839']
+},{
+    ou:'106526',
+    quizzes: ['492875','492876','492880','492883','492885','492887','492890','492892','492894','492899','492903','492906','492908','492909','492910','492911','492912','492913','492914','492915','492916','492971','492978','492987','492917','492918','492919','492920','492921','492922','492923','492924','492925','492926','492927','492928','492929','492930','492931','492932','492933','492934','492935','492936','492937','492938','492939','492940','492941','492942','492943','492944','492945','492946','492947','492948','492949','492950','492951','492952','492953','492954','492955','492956','492957','492958','492959','492960','492961','492962','492963','492964','492965','492966','492967','492968','492969','492970','492972','492979','492980','492981','492982','492983','492984','492985','492986','492988','492989','492877','492878','492879','492881','492882','492884','492886','492888','492889','492891','492893','492895','492896','492897','492898','492900','492901','492902','492904','492905','492907','492973','492974','492975','492976','492977']
+}]
+
 // Temporary Globals
 const subdomain = 'pathway'
-const ous = ['106509']
-const quizzes = ['492840']
 const screenshotFolder = Path.join(__dirname,'shots')
 const testDataFile = Path.join(__dirname,'data.json')
+const HowManyStudentsToNotClearAttempts = 2
+const teacherCookies = [{
+    name:'d2lSecureSessionVal',
+    value:'imjAZj18TjuGNJQPPBPsZaDQF',
+    domain:'pathway.brightspace.com'
+},{
+    name:'d2lSessionVal',
+    value:'D5jFnUvZuok7mBA5zvJxUxaHY',
+    domain:'pathway.brightspace.com'
+}]
 
 // Selectors
 const username = '[name=userName]'
@@ -22,6 +39,68 @@ const password = '[name=password]'
 const bigButton = 'button[primary]'
 const quizDetailsTable = 'table[role=presentation]'
 const AttemptHeader = 'h2.vui-heading-3'
+const StudentAttemptsCheckbox = 'input[name="gridAttempts_grpCb"]'
+const resetButton = 'a[title="Reset"]'
+const confirmDialogButton = '.d2l-dialog-buttons button[primary]'
+
+
+async function main(){
+    const browser = await puppeteer.launch({
+        headless: false
+    })
+    const page = await browser.newPage()
+    await page.setCookie(...teacherCookies)
+
+    for(var i = 0; i < courses.length; i++){
+        for(var k = 0; k < courses[i].quizzes.length; k++){
+            var url = `https://pathway.brightspace.com/d2l/lms/quizzing/admin/modify/quiz_newedit_restrictions.d2l?d2l_isfromtab=1&qi=${courses[i].quizzes[k]}&ou=${courses[i].ou}`
+            await page.goto(url)
+            if(await page.evaluate(() => !$('label:contains("End Date")').parent().parent().find('[disabled]').length)){
+                await page.evaluate(() => $('label:contains("End Date")').prev().click())
+            }
+            if(await page.evaluate(() => !$('label:contains("Start Date")').parent().parent().find('[disabled]').length)){
+                await page.evaluate(() => $('label:contains("Start Date")').prev().click())
+            }
+            await Promise.all([
+                page.waitForNavigation(),
+                page.click('.d2l-floating-buttons button:nth-child(2)')
+            ])
+        }
+    }
+    await browser.close()
+}
+
+async function main2() {
+    const browser = await puppeteer.launch({
+        headless: true
+    })
+    const page = await browser.newPage()
+    await page.setViewport({width:1000,height:1000})
+    
+    // For each user
+    for(var userId = 0; userId < auth.length; userId++){
+        await login(page,userId)
+        // For each course
+        for(var ci = 0; ci < courses.length; ci++){
+            // For each quiz
+            for(var quizi = 0; quizi < courses[ci].quizzes.length; quizi++){
+                // Setup test
+                var testData = createTestData(courses[ci].ou,courses[ci].quizzes[quizi],userId)
+                // DO IT!!
+                await takeQuiz(page,testData)
+                // Clear some student's attempts
+                await removeAttempts(page,testData)
+                // Write out results
+                appendTestData(testData)
+                // Let the console know we are still running
+                console.log(Object.values(testData).filter(n => typeof n != 'object').reduce((str,n) => str + String(n).padEnd(10),''))
+            }
+        }
+    }
+    await browser.close()
+    
+    createhtml()
+}
 
 function createTestData (ou,quizId,userId){
     var date = new Date()
@@ -46,38 +125,13 @@ async function login(page,userId) {
     ])
 }
 
-async function main() {
-    const browser = await puppeteer.launch({
-        headless: false
-    })
-    const page = await browser.newPage()
-    await page.setViewport({width:1000,height:1000})
-    
-    // For each user
-    for(var userId = 0; userId < auth.length; userId++){
-        await login(page,userId)
-        // For each course
-        for(var oui = 0; oui < ous.length; oui++){
-            // For each quiz
-            for(var quizi = 0; quizi < quizzes.length; quizi++){
-                // Setup test
-                var testData = createTestData(ous[oui],quizzes[quizi],userId)
-                // DO IT!!
-                await takeQuiz(page,testData)
-                // Write out results
-                appendTestData(testData)
-            }
-        }
-    }
-    await browser.close()
-
-    createhtml()
-}
-
-
 async function takeQuiz(page, testData) {
     async function takePicture(name){
-        var filename = `${testData.id}_${moment(testData.date).format('YYYY-D-M--h;mm;ssa')}_${testData.ou}_${testData.quizId}_${testData.userId}_${name}.png`
+        // Create the folder if it dosen't exist
+        if(!fs.existsSync(screenshotFolder)){
+            fs.mkdirSync(screenshotFolder)
+        }
+        var filename = `${testData.id}_${moment(testData.date).format('YYYY-D-M--H;mm;ss')}_${testData.ou}_${testData.quizId}_${testData.userId}_${name}.png`
         var path = Path.join(screenshotFolder,filename)
         testData.pics.push(path)
         await page.screenshot({
@@ -85,6 +139,7 @@ async function takeQuiz(page, testData) {
             fullPage:true,
         })
     }
+
     // Going to the quiz
     const quizURL = `https://${subdomain}.brightspace.com/d2l/lms/quizzing/user/quiz_summary.d2l?qi=${testData.quizId}&ou=${testData.ou}`
     await page.goto(quizURL)
@@ -109,12 +164,12 @@ async function takeQuiz(page, testData) {
         })
     })
     await takePicture('answered')
-    
     // Click submit
     frame = (await Promise.all([
         waitForFrame(page,'quiz_confirm_submit'),
         frame.$eval(bigButton, b => $(b).next().click(),bigButton)
     ]))[0]
+
     // we waited for the frame to change, now we just need to wait for the button to pop up
     await frame.waitFor(bigButton)
     await takePicture('confirm')
@@ -131,9 +186,12 @@ async function takeQuiz(page, testData) {
     await takePicture('after')
 
     // Go to the quizzes list to see if the attempt showed up
-    await page.goto(`https://pathway.brightspace.com/d2l/lms/quizzing/user/quizzes_list.d2l?ou=${testData.ou}`)
+    await page.goto(`https://${subdomain}.brightspace.com/d2l/lms/quizzing/user/quizzes_list.d2l?ou=${testData.ou}`)
     testData.listAttemptNumber = await page.evaluate(quizId => $(`[onclick*="${quizId}"]`).closest('td').next().text().match(/\d+/)[0],testData.quizId)
     await takePicture('list')
+
+    // Clear our handlers
+    await page.removeAllListeners()
 }
 
 async function waitForFrame(page,frameName){
@@ -143,6 +201,7 @@ async function waitForFrame(page,frameName){
             if(frame){
                 res(frame)
             }
+            // Remove the listener cause we are done with it
         });
     })
 }
@@ -165,12 +224,35 @@ function appendTestData(testData){
     data.push(testData)
     fs.writeFileSync(testDataFile,JSON.stringify(data))
 }
-// function dumpFrameTree(frame, indent) {
-//     indent = indent || ''
-//     console.log(indent + frame.url());
-//     for (let child of frame.childFrames()){
-//         dumpFrameTree(child, indent + '  ');
-//     }
-// }
+
+async function removeAttempts(page,testData){
+    // Need higher permissions so swap out my cookies
+    var studentCookies = await page.cookies()
+    await page.deleteCookie(...studentCookies)
+    await page.setCookie(...teacherCookies)
+
+    // Select the students to clear
+    await page.goto(`https://${subdomain}.brightspace.com/d2l/lms/quizzing/admin/mark/quiz_mark_users.d2l?qi=${testData.quizId}&ou=${testData.ou}`)
+
+    const numOfStudents = await page.$$eval(StudentAttemptsCheckbox, checkboxes => checkboxes.length)
+    
+    await page.$$eval(StudentAttemptsCheckbox, (checkboxes,limit) => [...checkboxes].slice(limit).forEach(n => n.click()),HowManyStudentsToNotClearAttempts)
+    
+    if(numOfStudents > HowManyStudentsToNotClearAttempts){
+        // Remove attempts
+        await Promise.all([
+            page.waitFor(confirmDialogButton),
+            page.click(resetButton)
+        ])
+        await Promise.all([
+            page.waitForNavigation(),
+            page.click(confirmDialogButton)
+        ])
+    }
+
+    // Put the student Cookies back
+    await page.deleteCookie(...teacherCookies)
+    await page.setCookie(...studentCookies)
+}
 
 main()
