@@ -44,33 +44,7 @@ const resetButton = 'a[title="Reset"]'
 const confirmDialogButton = '.d2l-dialog-buttons button[primary]'
 
 
-async function main(){
-    const browser = await puppeteer.launch({
-        headless: false
-    })
-    const page = await browser.newPage()
-    await page.setCookie(...teacherCookies)
-
-    for(var i = 0; i < courses.length; i++){
-        for(var k = 0; k < courses[i].quizzes.length; k++){
-            var url = `https://pathway.brightspace.com/d2l/lms/quizzing/admin/modify/quiz_newedit_restrictions.d2l?d2l_isfromtab=1&qi=${courses[i].quizzes[k]}&ou=${courses[i].ou}`
-            await page.goto(url)
-            if(await page.evaluate(() => !$('label:contains("End Date")').parent().parent().find('[disabled]').length)){
-                await page.evaluate(() => $('label:contains("End Date")').prev().click())
-            }
-            if(await page.evaluate(() => !$('label:contains("Start Date")').parent().parent().find('[disabled]').length)){
-                await page.evaluate(() => $('label:contains("Start Date")').prev().click())
-            }
-            await Promise.all([
-                page.waitForNavigation(),
-                page.click('.d2l-floating-buttons button:nth-child(2)')
-            ])
-        }
-    }
-    await browser.close()
-}
-
-async function main2() {
+async function main() {
     const browser = await puppeteer.launch({
         headless: true
     })
