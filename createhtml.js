@@ -18,8 +18,8 @@ Handlebars.registerHelper('picture',path => {
 
 Handlebars.registerHelper('isBad',function(){
     if(this.afterAttemptNumber - this.beforeAttemptNumber != 1 || 
-        this.afterAttemptNumber !== this.listAttemptNumber){
-        return 'class="negative"'
+        this.listAttemptNumber && (this.afterAttemptNumber !== this.listAttemptNumber)){
+        return 'style="background:red"'
     }
 })
 
